@@ -96,6 +96,35 @@ contract MyDex {
         swapCounter += 1;
     }
 
+    function swapExactTokensForTokens(
+        uint _amountIn,
+        uint _amountOutMin,
+        address[] calldata _path,
+        address _to,
+        uint _deadline
+    ) external {
+        _sanityCheck(msg.sender);
+        _sanityCheck(_to);
+        _zeroValueCheck(_amountIn);
+        _zeroValueCheck(_amountOutMin);
+        _zeroValueCheck(_deadline);
+
+        IERC20(_path[0]).transferFrom(msg.sender, address(this), _amountIn);
+
+        if (!IERC20(_path[0]).approve(uniswapV2RouterAddress, _amountIn)) {
+            revert Errors.ApprovalFailed();
+        }
+
+        IUniswapV2Router(uniswapV2RouterAddress).swapExactTokensForTokens(
+            _amountIn,
+            _amountOutMin,
+            _path,
+            _to,
+            _deadline
+        );
+
+        swapCounter += 1;
+    }
 
     function getPairAddress(address _tokenA,
         address _tokenB,

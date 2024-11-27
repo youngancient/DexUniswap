@@ -172,8 +172,50 @@ describe("My Dex", function () {
         );
 
       swapTx.wait();
+      
+      expect(await myDex.swapCounter()).to.equal(1);
+    });
+    it("Should swap tokens successfully using swap exact tokens for tokens", async function () {
+      const {
+        owner,
+        myDex,
+        ROUTER_ADDRESS,
+        impersonatedSigner,
+        deadline,
+        usdcContract,
+        daiContract,
+        USDC_ADDRESS,
+        DAI_ADDRESS,
+      } = await loadFixture(deployMyDex);
+
+      // swap USDC -> DAI
+
+      let amountOutMin= ethers.parseUnits("1", 18); // DAI
+      let amountIn = ethers.parseUnits("100", 6);
+
+      // (await usdcContract).approve(myDex, amountInMax);
+      await usdcContract.approve(myDex, amountIn);
+
+      const prevBal = await  daiContract.balanceOf(impersonatedSigner.address);
+
+      const swapTx = await myDex
+        .connect(impersonatedSigner)
+        .swapExactTokensForTokens(
+          amountIn,
+          amountOutMin,
+          [USDC_ADDRESS, DAI_ADDRESS],
+          impersonatedSigner,
+          deadline
+        );
+
+      swapTx.wait();
+      
+
+      const newBal = await  daiContract.balanceOf(impersonatedSigner.address);
 
       expect(await myDex.swapCounter()).to.equal(1);
+      expect(newBal).to.greaterThan(prevBal);
+      
     });
   });
 
